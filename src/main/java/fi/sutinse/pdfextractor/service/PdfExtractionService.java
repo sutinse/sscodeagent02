@@ -4,6 +4,7 @@ import fi.sutinse.pdfextractor.dto.ExtractionMetadata;
 import fi.sutinse.pdfextractor.dto.ExtractionMethod;
 import fi.sutinse.pdfextractor.dto.PdfExtractionResponse;
 import fi.sutinse.pdfextractor.model.DocumentType;
+import fi.sutinse.pdfextractor.model.Language;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.IOException;
@@ -44,7 +45,10 @@ public class PdfExtractionService {
         // Check if PDFBox extracted meaningful text
         if (isTextMeaningful(extractedText)) {
           long processingTime = System.currentTimeMillis() - startTime;
-          DocumentType docType = DocumentType.detectFromContent(extractedText);
+          
+          // Detect language and document type
+          Language detectedLanguage = Language.detectFromContent(extractedText);
+          DocumentType docType = DocumentType.detectFromContent(extractedText, detectedLanguage);
 
           ExtractionMetadata metadata =
               ExtractionMetadata.create(
@@ -53,10 +57,11 @@ public class PdfExtractionService {
                   document.getNumberOfPages(),
                   processingTime,
                   false,
-                  "fi");
+                  detectedLanguage.getTesseractCode());
 
           LOGGER.info(
-              "PDFBox extraction successful for file: {}, detected type: {}", filename, docType);
+              "PDFBox extraction successful for file: {}, detected type: {}, language: {}", 
+              filename, docType, detectedLanguage.getEnglishName());
 
           return PdfExtractionResponse.success(
               extractedText.trim(), ExtractionMethod.PDFBOX, docType, metadata);
@@ -75,15 +80,19 @@ public class PdfExtractionService {
 
   private PdfExtractionResponse extractWithOcr(byte[] pdfData, String filename, long startTime) {
     try {
+      // Extract text with OCR using auto-detected language
       String ocrText = tesseractService.extractTextFromPdf(pdfData);
 
       if (ocrText == null || ocrText.trim().isEmpty()) {
         return PdfExtractionResponse.failure("No text could be extracted using OCR");
       }
 
-      // Normalize text for Finnish documents
-      String normalizedText = normalizationService.normalizeText(ocrText);
-      DocumentType docType = DocumentType.detectFromContent(normalizedText);
+      // Detect language from OCR text
+      Language detectedLanguage = Language.detectFromContent(ocrText);
+      
+      // Normalize text using detected language
+      String normalizedText = normalizationService.normalizeText(ocrText, detectedLanguage);
+      DocumentType docType = DocumentType.detectFromContent(normalizedText, detectedLanguage);
 
       long processingTime = System.currentTimeMillis() - startTime;
 
@@ -97,10 +106,12 @@ public class PdfExtractionService {
 
       ExtractionMetadata metadata =
           ExtractionMetadata.create(
-              filename, pdfData.length, pageCount, processingTime, true, "fi");
+              filename, pdfData.length, pageCount, processingTime, true, 
+              detectedLanguage.getTesseractCode());
 
       LOGGER.info(
-          "TesseractOCR extraction successful for file: {}, detected type: {}", filename, docType);
+          "TesseractOCR extraction successful for file: {}, detected type: {}, language: {}", 
+          filename, docType, detectedLanguage.getEnglishName());
 
       return PdfExtractionResponse.success(
           normalizedText, ExtractionMethod.TESSERACT_OCR, docType, metadata);

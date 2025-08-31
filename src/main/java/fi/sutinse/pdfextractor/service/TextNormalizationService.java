@@ -1,19 +1,20 @@
 package fi.sutinse.pdfextractor.service;
 
+import fi.sutinse.pdfextractor.model.Language;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.text.Normalizer;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Service for normalizing Finnish text, especially for OCR results */
+/** Service for normalizing text for multiple languages, especially for OCR results */
 @ApplicationScoped
 public class TextNormalizationService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TextNormalizationService.class);
 
-  // Common OCR errors in Finnish text
-  private static final Pattern[] FINNISH_CORRECTIONS = {
+  // Common OCR errors in Nordic/European text
+  private static final Pattern[] COMMON_CORRECTIONS = {
     // Common character substitutions
     Pattern.compile("([0-9])O([0-9])"), // 0 -> O confusion in numbers
     Pattern.compile("([a-zA-Z])0([a-zA-Z])"), // O -> 0 confusion in words
@@ -21,37 +22,57 @@ public class TextNormalizationService {
     Pattern.compile("I1"), // I -> 1 confusion
     Pattern.compile("rn"), // r+n -> m confusion
     Pattern.compile("vv"), // w -> vv confusion
-
-    // Finnish specific corrections
-    Pattern.compile("ä"), // Ensure ä is properly encoded
-    Pattern.compile("ö"), // Ensure ö is properly encoded
-    Pattern.compile("å"), // Ensure å is properly encoded
   };
 
-  private static final String[] FINNISH_REPLACEMENTS = {
+  private static final String[] COMMON_REPLACEMENTS = {
     "$100$2", // Fix 0/O in numbers
     "$1O$2", // Fix O/0 in words
     "ll", // Fix l/1
     "Il", // Fix I/1
     "m", // Fix rn/m
     "w", // Fix vv/w
+  };
+
+  // Finnish specific corrections
+  private static final Pattern[] FINNISH_CORRECTIONS = {
+    Pattern.compile("ä"), // Ensure ä is properly encoded
+    Pattern.compile("ö"), // Ensure ö is properly encoded
+    Pattern.compile("å"), // Ensure å is properly encoded
+  };
+
+  private static final String[] FINNISH_REPLACEMENTS = {
+    "ä", // Normalize ä
+    "ö", // Normalize ö
+    "å", // Normalize å
+  };
+
+  // Swedish specific corrections
+  private static final Pattern[] SWEDISH_CORRECTIONS = {
+    Pattern.compile("ä"), // Ensure ä is properly encoded
+    Pattern.compile("ö"), // Ensure ö is properly encoded
+    Pattern.compile("å"), // Ensure å is properly encoded
+  };
+
+  private static final String[] SWEDISH_REPLACEMENTS = {
     "ä", // Normalize ä
     "ö", // Normalize ö
     "å", // Normalize å
   };
 
   /**
-   * Normalizes text for Finnish language, especially useful for OCR results
+   * Normalizes text for a specific language, especially useful for OCR results
    *
    * @param text Input text to normalize
+   * @param language Language to use for normalization
    * @return Normalized text
    */
-  public String normalizeText(String text) {
+  public String normalizeText(String text, Language language) {
     if (text == null || text.trim().isEmpty()) {
       return text;
     }
 
-    LOGGER.debug("Normalizing text of length: {}", text.length());
+    LOGGER.debug("Normalizing text of length: {} for language: {}", 
+                text.length(), language.getEnglishName());
 
     // Step 1: Unicode normalization
     String normalized = Normalizer.normalize(text, Normalizer.Form.NFC);
@@ -59,16 +80,30 @@ public class TextNormalizationService {
     // Step 2: Whitespace normalization
     normalized = normalizeWhitespace(normalized);
 
-    // Step 3: Finnish-specific OCR corrections
-    normalized = applyFinnishCorrections(normalized);
+    // Step 3: Common OCR corrections
+    normalized = applyCommonCorrections(normalized);
 
-    // Step 4: Invoice-specific normalization (if detected as invoice)
-    normalized = normalizeInvoiceText(normalized);
+    // Step 4: Language-specific OCR corrections
+    normalized = applyLanguageSpecificCorrections(normalized, language);
+
+    // Step 5: Document type specific normalization (if detected as invoice)
+    normalized = normalizeDocumentText(normalized, language);
 
     LOGGER.debug(
         "Text normalization completed, length: {} -> {}", text.length(), normalized.length());
 
     return normalized;
+  }
+
+  /**
+   * Normalizes text with automatic language detection
+   *
+   * @param text Input text to normalize
+   * @return Normalized text
+   */
+  public String normalizeText(String text) {
+    Language detectedLanguage = Language.detectFromContent(text);
+    return normalizeText(text, detectedLanguage);
   }
 
   /** Normalizes whitespace characters */
@@ -88,6 +123,36 @@ public class TextNormalizationService {
     return text.trim();
   }
 
+  /** Applies common corrections for OCR errors */
+  private String applyCommonCorrections(String text) {
+    String corrected = text;
+
+    for (int i = 0; i < COMMON_CORRECTIONS.length && i < COMMON_REPLACEMENTS.length; i++) {
+      corrected = COMMON_CORRECTIONS[i].matcher(corrected).replaceAll(COMMON_REPLACEMENTS[i]);
+    }
+
+    return corrected;
+  }
+
+  /** Applies language-specific corrections for common OCR errors */
+  private String applyLanguageSpecificCorrections(String text, Language language) {
+    String corrected = text;
+
+    switch (language) {
+      case FINNISH:
+        corrected = applyFinnishCorrections(corrected);
+        break;
+      case SWEDISH:
+        corrected = applySwedishCorrections(corrected);
+        break;
+      case ENGLISH:
+        corrected = applyEnglishCorrections(corrected);
+        break;
+    }
+
+    return corrected;
+  }
+
   /** Applies Finnish-specific corrections for common OCR errors */
   private String applyFinnishCorrections(String text) {
     String corrected = text;
@@ -104,25 +169,109 @@ public class TextNormalizationService {
     return corrected;
   }
 
-  /** Applies invoice-specific normalization */
-  private String normalizeInvoiceText(String text) {
-    String invoiceText = text;
+  /** Applies Swedish-specific corrections for common OCR errors */
+  private String applySwedishCorrections(String text) {
+    String corrected = text;
+
+    for (int i = 0; i < SWEDISH_CORRECTIONS.length && i < SWEDISH_REPLACEMENTS.length; i++) {
+      corrected = SWEDISH_CORRECTIONS[i].matcher(corrected).replaceAll(SWEDISH_REPLACEMENTS[i]);
+    }
+
+    // Fix common Swedish word OCR errors
+    corrected = corrected.replaceAll("\\boch\\b", "och"); // Ensure 'och' (and) is correct
+    corrected = corrected.replaceAll("\\beller\\b", "eller"); // Ensure 'eller' (or) is correct
+    corrected = corrected.replaceAll("\\bär\\b", "är"); // Ensure 'är' (is) is correct
+
+    return corrected;
+  }
+
+  /** Applies English-specific corrections for common OCR errors */
+  private String applyEnglishCorrections(String text) {
+    String corrected = text;
+
+    // Fix common English word OCR errors
+    corrected = corrected.replaceAll("\\bthe\\b", "the"); // Ensure 'the' is correct
+    corrected = corrected.replaceAll("\\band\\b", "and"); // Ensure 'and' is correct
+    corrected = corrected.replaceAll("\\bor\\b", "or"); // Ensure 'or' is correct
+    corrected = corrected.replaceAll("\\bis\\b", "is"); // Ensure 'is' is correct
+
+    return corrected;
+  }
+
+  /** Applies document type specific normalization based on language */
+  private String normalizeDocumentText(String text, Language language) {
+    switch (language) {
+      case FINNISH:
+        return normalizeFinnishDocumentText(text);
+      case SWEDISH:
+        return normalizeSwedishDocumentText(text);
+      case ENGLISH:
+        return normalizeEnglishDocumentText(text);
+      default:
+        return text;
+    }
+  }
+
+  /** Applies Finnish document-specific normalization */
+  private String normalizeFinnishDocumentText(String text) {
+    String normalized = text;
 
     // Normalize common invoice terms
-    invoiceText = invoiceText.replaceAll("(?i)lasku\\s*(?:numero|nro|#)", "Laskunumero:");
-    invoiceText = invoiceText.replaceAll("(?i)eräpäivä", "Eräpäivä:");
-    invoiceText = invoiceText.replaceAll("(?i)yhteensä", "Yhteensä:");
-    invoiceText = invoiceText.replaceAll("(?i)alv\\s*%?", "ALV");
-    invoiceText = invoiceText.replaceAll("(?i)arvonlisävero", "Arvonlisävero");
+    normalized = normalized.replaceAll("(?i)lasku\\s*(?:numero|nro|#)", "Laskunumero:");
+    normalized = normalized.replaceAll("(?i)eräpäivä", "Eräpäivä:");
+    normalized = normalized.replaceAll("(?i)yhteensä", "Yhteensä:");
+    normalized = normalized.replaceAll("(?i)alv\\s*%?", "ALV");
+    normalized = normalized.replaceAll("(?i)arvonlisävero", "Arvonlisävero");
 
     // Normalize monetary amounts
-    invoiceText = invoiceText.replaceAll("(\\d+)[,.]([0-9]{2})\\s*€", "$1,$2 €");
-    invoiceText = invoiceText.replaceAll("€\\s*(\\d+[,.][0-9]{2})", "$1 €");
+    normalized = normalized.replaceAll("(\\d+)[,.]([0-9]{2})\\s*€", "$1,$2 €");
+    normalized = normalized.replaceAll("€\\s*(\\d+[,.][0-9]{2})", "$1 €");
 
     // Normalize dates
-    invoiceText = invoiceText.replaceAll("(\\d{1,2})[./](\\d{1,2})[./](\\d{4})", "$1.$2.$3");
+    normalized = normalized.replaceAll("(\\d{1,2})[./](\\d{1,2})[./](\\d{4})", "$1.$2.$3");
 
-    return invoiceText;
+    return normalized;
+  }
+
+  /** Applies Swedish document-specific normalization */
+  private String normalizeSwedishDocumentText(String text) {
+    String normalized = text;
+
+    // Normalize common invoice terms in Swedish
+    normalized = normalized.replaceAll("(?i)faktura\\s*(?:nummer|nr|#)", "Fakturanummer:");
+    normalized = normalized.replaceAll("(?i)förfallodag", "Förfallodag:");
+    normalized = normalized.replaceAll("(?i)totalt", "Totalt:");
+    normalized = normalized.replaceAll("(?i)moms\\s*%?", "Moms");
+
+    // Normalize monetary amounts (Swedish uses SEK)
+    normalized = normalized.replaceAll("(\\d+)[,.]([0-9]{2})\\s*(?:kr|SEK)", "$1,$2 kr");
+    normalized = normalized.replaceAll("(?:kr|SEK)\\s*(\\d+[,.][0-9]{2})", "$1 kr");
+
+    // Normalize dates
+    normalized = normalized.replaceAll("(\\d{1,2})[./](\\d{1,2})[./](\\d{4})", "$1.$2.$3");
+
+    return normalized;
+  }
+
+  /** Applies English document-specific normalization */
+  private String normalizeEnglishDocumentText(String text) {
+    String normalized = text;
+
+    // Normalize common invoice terms in English
+    normalized = normalized.replaceAll("(?i)invoice\\s*(?:number|no|#)", "Invoice Number:");
+    normalized = normalized.replaceAll("(?i)due\\s*date", "Due Date:");
+    normalized = normalized.replaceAll("(?i)total", "Total:");
+    normalized = normalized.replaceAll("(?i)vat\\s*%?", "VAT");
+    normalized = normalized.replaceAll("(?i)tax", "Tax");
+
+    // Normalize monetary amounts
+    normalized = normalized.replaceAll("\\$\\s*(\\d+[,.][0-9]{2})", "$1 USD");
+    normalized = normalized.replaceAll("(\\d+)[,.]([0-9]{2})\\s*\\$", "$1.$2 USD");
+
+    // Normalize dates (MM/DD/YYYY to DD.MM.YYYY)
+    normalized = normalized.replaceAll("(\\d{1,2})/(\\d{1,2})/(\\d{4})", "$2.$1.$3");
+
+    return normalized;
   }
 
   /** Cleans text by removing obvious OCR artifacts */

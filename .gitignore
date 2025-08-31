@@ -34,6 +34,7 @@ quarkus.log
 # Application specific
 *.pdf
 tesseract-data/
+test-docs/
 
 # Logs
 *.log
@@ -42,3 +43,6 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+# Docker
+.dockerignore

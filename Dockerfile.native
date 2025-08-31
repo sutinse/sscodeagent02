@@ -1,0 +1,53 @@
+FROM ubuntu:22.04 AS build
+
+# Install required packages for building
+RUN apt-get update && \
+    apt-get install -y openjdk-17-jdk maven tesseract-ocr tesseract-ocr-fin tesseract-ocr-swe tesseract-ocr-eng tesseract-ocr-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create app user
+RUN useradd -r -g root -s /bin/false app
+
+# Copy source code
+COPY --chown=app:root . /code/
+WORKDIR /code
+
+# Build native executable
+RUN mvn package -Pnative -DskipTests
+
+# Runtime stage
+FROM ubuntu:22.04
+
+# Install TesseractOCR and language packs for runtime
+RUN apt-get update && \
+    apt-get install -y tesseract-ocr tesseract-ocr-fin tesseract-ocr-swe tesseract-ocr-eng curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create app user
+RUN useradd -r -g root -s /bin/false app
+
+# Copy the native executable
+COPY --from=build --chown=app:root /code/target/*-runner /application
+
+# Set permissions
+RUN chmod 755 /application
+
+# Set environment variables for TesseractOCR
+ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
+ENV TESSERACT_LANGUAGE=fin
+ENV TESSERACT_AUTO_DETECT_LANGUAGE=true
+
+# Switch to app user
+USER app
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/api/pdf/health || exit 1
+
+# Run the application
+ENTRYPOINT ["./application", "-Dquarkus.http.host=0.0.0.0"]
