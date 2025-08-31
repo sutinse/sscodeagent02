@@ -5,17 +5,26 @@ A Quarkus application that extracts raw text data from PDF files through a REST 
 ## Features
 
 - **Dual extraction methods**: Primary extraction with Apache PDFBox, fallback to TesseractOCR
-- **Finnish language support**: OCR configured for Finnish text recognition
+- **Multi-language support**: Automatic language detection for Finnish, Swedish, and English
 - **Document type detection**: Automatic detection of common document types (invoices, receipts, contracts, etc.)
-- **Text normalization**: Finnish-specific text normalization for OCR results
+- **Language-specific text normalization**: Text normalization optimized for each supported language
 - **Modern Java**: Uses Java records and modern language features
 - **REST API**: Clean REST endpoints for file upload and health checking
+- **Docker support**: Both JVM and native Docker images available
+
+## Supported Languages
+
+- **Finnish** (`fin`) - Original support with comprehensive text patterns
+- **Swedish** (`swe`) - Full support with Nordic character handling
+- **English** (`eng`) - Complete support with English document patterns
+
+The application automatically detects the document language by analyzing text content and applies appropriate language-specific processing.
 
 ## Requirements
 
 - Java 17+
 - Maven 3.6+
-- TesseractOCR (for OCR functionality)
+- TesseractOCR with language packs (fin, swe, eng)
 
 ## Quick Start
 
@@ -70,7 +79,7 @@ Content-Type: multipart/form-data
     "originalFilename": "invoice.pdf",
     "fileSizeBytes": 45678,
     "textNormalized": false,
-    "language": "fi"
+    "language": "fin"
   }
 }
 ```
@@ -89,16 +98,18 @@ curl -X POST -F "file=@your-document.pdf" http://localhost:8080/api/pdf/extract
 
 The application automatically detects the following document types:
 
-- `INVOICE` (Lasku) - Invoices and bills
-- `RECEIPT` (Kuitti) - Shopping receipts
-- `CONTRACT` (Sopimus) - Contracts and agreements
-- `CERTIFICATE` (Todistus) - Certificates and diplomas
-- `REPORT` (Raportti) - Reports and analyses
-- `FORM` (Lomake) - Forms and applications
-- `LETTER` (Kirje) - Letters and correspondence
-- `MANUAL` (Käyttöohje) - User manuals and guides
-- `SPECIFICATION` (Erittely) - Specifications and listings
-- `UNKNOWN` (Tuntematon) - Unknown or unrecognized documents
+- `INVOICE` - Invoices and bills (Lasku/Faktura/Invoice)
+- `RECEIPT` - Shopping receipts (Kuitti/Kvitto/Receipt)
+- `CONTRACT` - Contracts and agreements (Sopimus/Kontrakt/Contract)
+- `CERTIFICATE` - Certificates and diplomas (Todistus/Certifikat/Certificate)
+- `REPORT` - Reports and analyses (Raportti/Rapport/Report)
+- `FORM` - Forms and applications (Lomake/Blankett/Form)
+- `LETTER` - Letters and correspondence (Kirje/Brev/Letter)
+- `MANUAL` - User manuals and guides (Käyttöohje/Manual/Manual)
+- `SPECIFICATION` - Specifications and listings (Erittely/Specifikation/Specification)
+- `UNKNOWN` - Unknown or unrecognized documents (Tuntematon/Okänd/Unknown)
+
+Document types are detected using language-specific keywords and patterns for all supported languages.
 
 ## Extraction Methods
 
@@ -116,19 +127,38 @@ quarkus.http.port=8080
 quarkus.http.limits.max-body-size=50M
 
 # TesseractOCR settings
-tesseract.language=fin
+tesseract.language=fin                    # Default language (fin, swe, eng)
+tesseract.auto-detect-language=true      # Enable automatic language detection
 tesseract.dpi=300
 tesseract.ocr.engine.mode=1
 tesseract.page.seg.mode=1
 ```
+
+## Docker Support
+
+The application includes Docker support for both JVM and native builds:
+
+```bash
+# JVM Docker build
+docker build -f Dockerfile.jvm -t pdf-extractor-jvm .
+
+# Native Docker build  
+docker build -f Dockerfile.native -t pdf-extractor-native .
+
+# Using Docker Compose
+docker-compose up pdf-extractor-jvm    # JVM on port 8080
+docker-compose up pdf-extractor-native # Native on port 8081
+```
+
+See [DOCKER_MULTI_LANGUAGE.md](DOCKER_MULTI_LANGUAGE.md) for comprehensive Docker documentation.
 
 ## Architecture
 
 ### Core Components
 
 - **PdfExtractionService**: Main service orchestrating PDF text extraction
-- **TesseractOcrService**: OCR service using TesseractOCR
-- **TextNormalizationService**: Finnish text normalization and cleaning
+- **TesseractOcrService**: OCR service with multi-language support
+- **TextNormalizationService**: Language-specific text normalization and cleaning
 - **DocumentType**: Enum with document type detection logic
 - **PdfExtractionResource**: REST API controller
 
@@ -173,6 +203,32 @@ The application includes comprehensive tests:
 - Error handling validation
 
 Run tests with: `mvn test`
+
+### Multi-Language Testing
+
+To test the multi-language functionality:
+
+```bash
+# Create test PDFs for different languages
+make test-multilang
+
+# Test with different language documents
+curl -X POST -F "file=@test-docs/test_finnish.pdf" http://localhost:8080/api/pdf/extract
+curl -X POST -F "file=@test-docs/test_swedish.pdf" http://localhost:8080/api/pdf/extract  
+curl -X POST -F "file=@test-docs/test_english.pdf" http://localhost:8080/api/pdf/extract
+```
+
+The response will include the detected language in the metadata:
+```json
+{
+  "success": true,
+  "extractedText": "Lasku numero: 12345...",
+  "documentType": "INVOICE",
+  "metadata": {
+    "language": "fin"
+  }
+}
+```
 
 ## License
 
