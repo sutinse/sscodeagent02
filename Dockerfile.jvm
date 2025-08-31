@@ -1,0 +1,34 @@
+FROM openjdk:17-jdk-slim
+
+# Install TesseractOCR and language packs
+RUN apt-get update && \
+    apt-get install -y tesseract-ocr tesseract-ocr-fin tesseract-ocr-swe tesseract-ocr-eng curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Create application user
+RUN useradd -r -g root -s /bin/false app
+
+# Copy application files
+COPY --chown=app:root target/quarkus-app/lib/ /deployments/lib/
+COPY --chown=app:root target/quarkus-app/*.jar /deployments/
+COPY --chown=app:root target/quarkus-app/app/ /deployments/app/
+COPY --chown=app:root target/quarkus-app/quarkus/ /deployments/quarkus/
+
+# Set environment variables for TesseractOCR
+ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
+ENV TESSERACT_LANGUAGE=fin
+ENV TESSERACT_AUTO_DETECT_LANGUAGE=true
+
+# Switch to app user
+USER app
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/api/pdf/health || exit 1
+
+# Run the application
+ENTRYPOINT ["java", "-jar", "/deployments/quarkus-run.jar"]
