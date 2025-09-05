@@ -4,7 +4,7 @@ import fi.sutinse.pdfextractor.model.DocumentType;
 
 /** Record for PDF extraction response using modern Java record syntax */
 public record PdfExtractionResponse(
-    String extractedText,
+    StructuredText extractedText,
     ExtractionMethod methodUsed,
     DocumentType documentType,
     boolean success,
@@ -13,7 +13,7 @@ public record PdfExtractionResponse(
 
   /** Factory method for successful extraction */
   public static PdfExtractionResponse success(
-      String text, ExtractionMethod method, DocumentType docType, ExtractionMetadata metadata) {
+      StructuredText text, ExtractionMethod method, DocumentType docType, ExtractionMetadata metadata) {
     return new PdfExtractionResponse(text, method, docType, true, null, metadata);
   }
 
