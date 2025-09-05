@@ -3,6 +3,7 @@ package fi.sutinse.pdfextractor.service;
 import fi.sutinse.pdfextractor.dto.ExtractionMetadata;
 import fi.sutinse.pdfextractor.dto.ExtractionMethod;
 import fi.sutinse.pdfextractor.dto.PdfExtractionResponse;
+import fi.sutinse.pdfextractor.dto.StructuredText;
 import fi.sutinse.pdfextractor.model.DocumentType;
 import fi.sutinse.pdfextractor.model.Language;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -45,7 +46,7 @@ public class PdfExtractionService {
         // Check if PDFBox extracted meaningful text
         if (isTextMeaningful(extractedText)) {
           long processingTime = System.currentTimeMillis() - startTime;
-          
+
           // Detect language and document type
           Language detectedLanguage = Language.detectFromContent(extractedText);
           DocumentType docType = DocumentType.detectFromContent(extractedText, detectedLanguage);
@@ -60,11 +61,16 @@ public class PdfExtractionService {
                   detectedLanguage.getTesseractCode());
 
           LOGGER.info(
-              "PDFBox extraction successful for file: {}, detected type: {}, language: {}", 
-              filename, docType, detectedLanguage.getEnglishName());
+              "PDFBox extraction successful for file: {}, detected type: {}, language: {}",
+              filename,
+              docType,
+              detectedLanguage.getEnglishName());
 
           return PdfExtractionResponse.success(
-              extractedText.trim(), ExtractionMethod.PDFBOX, docType, metadata);
+              StructuredText.fromText(extractedText.trim()),
+              ExtractionMethod.PDFBOX,
+              docType,
+              metadata);
         }
       }
 
@@ -80,18 +86,21 @@ public class PdfExtractionService {
 
   private PdfExtractionResponse extractWithOcr(byte[] pdfData, String filename, long startTime) {
     try {
-      // Extract text with OCR using auto-detected language
-      String ocrText = tesseractService.extractTextFromPdf(pdfData);
+      // Extract structured text with OCR and location data
+      StructuredText structuredText = tesseractService.extractStructuredTextFromPdf(pdfData);
 
-      if (ocrText == null || ocrText.trim().isEmpty()) {
+      if (structuredText == null
+          || structuredText.content() == null
+          || structuredText.content().trim().isEmpty()) {
         return PdfExtractionResponse.failure("No text could be extracted using OCR");
       }
 
       // Detect language from OCR text
-      Language detectedLanguage = Language.detectFromContent(ocrText);
-      
+      Language detectedLanguage = Language.detectFromContent(structuredText.content());
+
       // Normalize text using detected language
-      String normalizedText = normalizationService.normalizeText(ocrText, detectedLanguage);
+      String normalizedText =
+          normalizationService.normalizeText(structuredText.content(), detectedLanguage);
       DocumentType docType = DocumentType.detectFromContent(normalizedText, detectedLanguage);
 
       long processingTime = System.currentTimeMillis() - startTime;
@@ -106,15 +115,25 @@ public class PdfExtractionService {
 
       ExtractionMetadata metadata =
           ExtractionMetadata.create(
-              filename, pdfData.length, pageCount, processingTime, true, 
+              filename,
+              pdfData.length,
+              pageCount,
+              processingTime,
+              true,
               detectedLanguage.getTesseractCode());
 
       LOGGER.info(
-          "TesseractOCR extraction successful for file: {}, detected type: {}, language: {}", 
-          filename, docType, detectedLanguage.getEnglishName());
+          "TesseractOCR extraction successful for file: {}, detected type: {}, language: {}",
+          filename,
+          docType,
+          detectedLanguage.getEnglishName());
+
+      // Update the structured text content with normalized text
+      StructuredText finalStructuredText =
+          StructuredText.fromElements(normalizedText, structuredText.elements());
 
       return PdfExtractionResponse.success(
-          normalizedText, ExtractionMethod.TESSERACT_OCR, docType, metadata);
+          finalStructuredText, ExtractionMethod.TESSERACT_OCR, docType, metadata);
 
     } catch (Exception e) {
       LOGGER.error("Error during OCR extraction for file: {}", filename, e);
