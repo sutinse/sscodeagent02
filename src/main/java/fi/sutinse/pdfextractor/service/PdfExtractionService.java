@@ -9,6 +9,7 @@ import fi.sutinse.pdfextractor.model.Language;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.IOException;
+import java.util.Map;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -24,6 +25,8 @@ public class PdfExtractionService {
   @Inject TesseractOcrService tesseractService;
 
   @Inject TextNormalizationService normalizationService;
+
+  @Inject StructuredDataExtractionService structuredDataService;
 
   /**
    * Extracts text from PDF using PDFBox first, then TesseractOCR as fallback
@@ -51,6 +54,10 @@ public class PdfExtractionService {
           Language detectedLanguage = Language.detectFromContent(extractedText);
           DocumentType docType = DocumentType.detectFromContent(extractedText, detectedLanguage);
 
+          // Extract structured data based on document type and language
+          Map<String, Object> structuredData = 
+              structuredDataService.extractStructuredData(extractedText, docType, detectedLanguage);
+
           ExtractionMetadata metadata =
               ExtractionMetadata.create(
                   filename,
@@ -67,7 +74,7 @@ public class PdfExtractionService {
               detectedLanguage.getEnglishName());
 
           return PdfExtractionResponse.success(
-              StructuredText.fromText(extractedText.trim()),
+              StructuredText.fromText(extractedText.trim(), structuredData),
               ExtractionMethod.PDFBOX,
               docType,
               metadata);
@@ -103,6 +110,10 @@ public class PdfExtractionService {
           normalizationService.normalizeText(structuredText.content(), detectedLanguage);
       DocumentType docType = DocumentType.detectFromContent(normalizedText, detectedLanguage);
 
+      // Extract structured data from normalized text
+      Map<String, Object> structuredData = 
+          structuredDataService.extractStructuredData(normalizedText, docType, detectedLanguage);
+
       long processingTime = System.currentTimeMillis() - startTime;
 
       // Get page count using PDFBox (for metadata)
@@ -128,9 +139,9 @@ public class PdfExtractionService {
           docType,
           detectedLanguage.getEnglishName());
 
-      // Update the structured text content with normalized text
+      // Update the structured text content with normalized text and structured data
       StructuredText finalStructuredText =
-          StructuredText.fromElements(normalizedText, structuredText.elements());
+          StructuredText.fromElements(normalizedText, structuredText.elements(), structuredData);
 
       return PdfExtractionResponse.success(
           finalStructuredText, ExtractionMethod.TESSERACT_OCR, docType, metadata);
