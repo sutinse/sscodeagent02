@@ -7,7 +7,7 @@ Always reference these instructions first and fallback to search or bash command
 ### Bootstrap, Build, and Test the Repository:
 - **Install TesseractOCR (REQUIRED)**: `sudo apt update && sudo apt install -y tesseract-ocr tesseract-ocr-fin tesseract-ocr-swe tesseract-ocr-eng`
 - **Install Ghostscript (for testing)**: `sudo apt install -y ghostscript`
-- **Verify Java 17+**: `java -version` (OpenJDK 17+ required for modern features like switch expressions and records)
+- **Verify Java 21+**: `java -version` (OpenJDK 21+ required for modern features like switch expressions, records, sequenced collections)
 - **Verify Maven 3.6+**: `mvn -version` (Maven 3.9+ available)
 - **Clean compile**: `mvn clean compile` -- takes 4-7 seconds. NEVER CANCEL. Set timeout to 30+ seconds.
 - **Full build with tests**: `mvn clean package` -- takes 20-25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
@@ -75,7 +75,8 @@ Always reference these instructions first and fallback to search or bash command
 
 ### Modern Java Features Utilized:
 - **Records (Java 14+)**: Used for immutable data structures (`PdfExtractionResponse`, `ExtractionMetadata`, `HealthResponse`)
-- **Switch Expressions (Java 14+)**: Enhanced readability in `TextNormalizationService` and `DocumentType` for cleaner code
+- **Switch Expressions (Java 14+, Standard in 21)**: Enhanced readability in `TextNormalizationService` and `DocumentType` for cleaner code
+- **Sequenced Collections (Java 21)**: Used in `TextNormalizationService` for ordered collections with first/last element access
 - **Stream API**: Improved `containsAny` method using functional programming patterns
 - **Enhanced Pattern Matching**: Method references and lambda expressions for better code maintainability
 - **Var keyword**: Local variable type inference where appropriate for cleaner code
@@ -98,10 +99,10 @@ src/
 - **Extract**: `POST /api/pdf/extract` (multipart/form-data with "file" field)
 
 ### Dependencies:
-- **Quarkus 3.12.1**: Framework for cloud-native Java applications (upgraded from 3.9.5)
+- **Quarkus 3.26.2**: Framework for cloud-native Java applications (upgraded from 3.12.1)
 - **PDFBox 3.0.3**: Primary PDF text extraction library
 - **Tess4J 5.13.0**: Java wrapper for TesseractOCR
-- **Java 17+**: Required runtime with modern language features (switch expressions, records, streams)
+- **Java 21+**: Required runtime with modern language features (switch expressions, records, streams, sequenced collections)
 - **Maven 3.6+**: Build system
 
 ## Common Tasks and Troubleshooting
@@ -117,7 +118,7 @@ src/
 - **Multi-language support**: Comprehensive support for Finnish, Swedish, and English with automatic language detection
 - **Document type detection**: Intelligent classification (INVOICE, RECEIPT, CONTRACT, REPORT, MANUAL, SPECIFICATION, FORM, LETTER, CERTIFICATE)
 - **Language-specific text normalization**: Tailored normalization for each supported language
-- **Modern Java architecture**: Uses Java 17+ features including records, switch expressions, streams, and enhanced APIs
+- **Modern Java architecture**: Uses Java 21+ features including records, switch expressions, streams, sequenced collections, and enhanced APIs
 - **Error handling**: Comprehensive error responses for invalid PDFs with detailed logging
 
 ### Known Issues:
