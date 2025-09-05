@@ -136,21 +136,11 @@ public class TextNormalizationService {
 
   /** Applies language-specific corrections for common OCR errors */
   private String applyLanguageSpecificCorrections(String text, Language language) {
-    String corrected = text;
-
-    switch (language) {
-      case FINNISH:
-        corrected = applyFinnishCorrections(corrected);
-        break;
-      case SWEDISH:
-        corrected = applySwedishCorrections(corrected);
-        break;
-      case ENGLISH:
-        corrected = applyEnglishCorrections(corrected);
-        break;
-    }
-
-    return corrected;
+    return switch (language) {
+      case FINNISH -> applyFinnishCorrections(text);
+      case SWEDISH -> applySwedishCorrections(text);
+      case ENGLISH -> applyEnglishCorrections(text);
+    };
   }
 
   /** Applies Finnish-specific corrections for common OCR errors */
