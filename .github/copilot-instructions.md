@@ -5,9 +5,9 @@ Always reference these instructions first and fallback to search or bash command
 ## Working Effectively
 
 ### Bootstrap, Build, and Test the Repository:
-- **Install TesseractOCR (REQUIRED)**: `sudo apt update && sudo apt install -y tesseract-ocr tesseract-ocr-fin`
+- **Install TesseractOCR (REQUIRED)**: `sudo apt update && sudo apt install -y tesseract-ocr tesseract-ocr-fin tesseract-ocr-swe tesseract-ocr-eng`
 - **Install Ghostscript (for testing)**: `sudo apt install -y ghostscript`
-- **Verify Java 17+**: `java -version` (OpenJDK 17+ required)
+- **Verify Java 17+**: `java -version` (OpenJDK 17+ required for modern features like switch expressions and records)
 - **Verify Maven 3.6+**: `mvn -version` (Maven 3.9+ available)
 - **Clean compile**: `mvn clean compile` -- takes 4-7 seconds. NEVER CANCEL. Set timeout to 30+ seconds.
 - **Full build with tests**: `mvn clean package` -- takes 20-25 seconds. NEVER CANCEL. Set timeout to 60+ seconds.
@@ -66,11 +66,19 @@ Always reference these instructions first and fallback to search or bash command
 ## Architecture and Key Components
 
 ### Core Components:
-- **PdfExtractionService**: Main service orchestrating PDF text extraction
-- **TesseractOcrService**: OCR service using TesseractOCR with Finnish language support
-- **TextNormalizationService**: Finnish text normalization and cleaning
-- **DocumentType**: Enum with document type detection logic (INVOICE, RECEIPT, CONTRACT, etc.)
-- **PdfExtractionResource**: REST API controller at `/api/pdf/*`
+- **PdfExtractionService**: Main service orchestrating PDF text extraction with dual extraction methods
+- **TesseractOcrService**: OCR service using TesseractOCR with multi-language support (Finnish, Swedish, English)
+- **TextNormalizationService**: Language-specific text normalization and cleaning for multiple languages
+- **DocumentType**: Enum with intelligent document type detection logic (INVOICE, RECEIPT, CONTRACT, REPORT, MANUAL, etc.)
+- **Language**: Enum with automatic language detection from content analysis
+- **PdfExtractionResource**: REST API controller at `/api/pdf/*` with comprehensive error handling
+
+### Modern Java Features Utilized:
+- **Records (Java 14+)**: Used for immutable data structures (`PdfExtractionResponse`, `ExtractionMetadata`, `HealthResponse`)
+- **Switch Expressions (Java 14+)**: Enhanced readability in `TextNormalizationService` and `DocumentType` for cleaner code
+- **Stream API**: Improved `containsAny` method using functional programming patterns
+- **Enhanced Pattern Matching**: Method references and lambda expressions for better code maintainability
+- **Var keyword**: Local variable type inference where appropriate for cleaner code
 
 ### Project Structure:
 ```
@@ -90,10 +98,10 @@ src/
 - **Extract**: `POST /api/pdf/extract` (multipart/form-data with "file" field)
 
 ### Dependencies:
-- **Quarkus 3.9.5**: Framework for cloud-native Java applications
+- **Quarkus 3.12.1**: Framework for cloud-native Java applications (upgraded from 3.9.5)
 - **PDFBox 3.0.3**: Primary PDF text extraction library
 - **Tess4J 5.13.0**: Java wrapper for TesseractOCR
-- **Java 17+**: Required runtime
+- **Java 17+**: Required runtime with modern language features (switch expressions, records, streams)
 - **Maven 3.6+**: Build system
 
 ## Common Tasks and Troubleshooting
@@ -101,14 +109,16 @@ src/
 ### Configuration:
 - **HTTP port**: 8080 (configured in application.properties)
 - **File upload limit**: 50MB (quarkus.http.limits.max-body-size)
-- **TesseractOCR language**: Finnish ('fin')
+- **TesseractOCR languages**: Finnish ('fin'), Swedish ('swe'), English ('eng') with auto-detection
 - **OCR DPI**: 300 for high-quality text recognition
 
 ### Application Features:
-- **Dual extraction**: PDFBox primary, TesseractOCR fallback
-- **Finnish language support**: OCR optimized for Finnish text
-- **Document type detection**: Automatic classification (INVOICE, RECEIPT, etc.)
-- **Error handling**: Proper error responses for invalid PDFs
+- **Dual extraction**: PDFBox primary with automatic TesseractOCR fallback
+- **Multi-language support**: Comprehensive support for Finnish, Swedish, and English with automatic language detection
+- **Document type detection**: Intelligent classification (INVOICE, RECEIPT, CONTRACT, REPORT, MANUAL, SPECIFICATION, FORM, LETTER, CERTIFICATE)
+- **Language-specific text normalization**: Tailored normalization for each supported language
+- **Modern Java architecture**: Uses Java 17+ features including records, switch expressions, streams, and enhanced APIs
+- **Error handling**: Comprehensive error responses for invalid PDFs with detailed logging
 
 ### Known Issues:
 - **Configuration warning**: "quarkus.http.body.multipart.max-chunk-size" warning can be ignored

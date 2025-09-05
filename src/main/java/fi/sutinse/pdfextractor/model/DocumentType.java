@@ -121,155 +121,106 @@ public enum DocumentType {
   }
 
   private static String[] getInvoiceKeywords(Language language) {
-    switch (language) {
-      case FINNISH:
-        return new String[]{"lasku", "laskun", "laskutus", "maksettava", "eräpäivä", 
-                           "yhteensä", "alv", "arvonlisävero", "summa", "hinta", "maksu"};
-      case SWEDISH:
-        return new String[]{"faktura", "betalning", "förfallodag", "totalt", "moms", 
-                           "summa", "pris", "betalas", "fakturabelopp", "avgift"};
-      case ENGLISH:
-        return new String[]{"invoice", "payment", "due", "total", "amount", "vat", "tax", 
-                           "bill", "charge", "cost", "price", "fee"};
-      default:
-        return new String[]{};
-    }
+    return switch (language) {
+      case FINNISH -> new String[]{"lasku", "laskun", "laskutus", "maksettava", "eräpäivä", 
+                         "yhteensä", "alv", "arvonlisävero", "summa", "hinta", "maksu"};
+      case SWEDISH -> new String[]{"faktura", "betalning", "förfallodag", "totalt", "moms", 
+                         "summa", "pris", "betalas", "fakturabelopp", "avgift"};
+      case ENGLISH -> new String[]{"invoice", "payment", "due", "total", "amount", "vat", "tax", 
+                         "bill", "charge", "cost", "price", "fee"};
+    };
   }
 
   private static String[] getReceiptKeywords(Language language) {
-    switch (language) {
-      case FINNISH:
-        return new String[]{"kuitti", "ostos", "kassalaite", "kassa", "myymälä", 
-                           "kauppa", "osto", "maksutapa"};
-      case SWEDISH:
-        return new String[]{"kvitto", "inköp", "kassa", "butik", "köp", "affär", 
-                           "betalningsmetod", "handel"};
-      case ENGLISH:
-        return new String[]{"receipt", "purchase", "store", "shop", "transaction", 
-                           "payment method", "bought", "retail"};
-      default:
-        return new String[]{};
-    }
+    return switch (language) {
+      case FINNISH -> new String[]{"kuitti", "ostos", "kassalaite", "kassa", "myymälä", 
+                         "kauppa", "osto", "maksutapa"};
+      case SWEDISH -> new String[]{"kvitto", "inköp", "kassa", "butik", "köp", "affär", 
+                         "betalningsmetod", "handel"};
+      case ENGLISH -> new String[]{"receipt", "purchase", "store", "shop", "transaction", 
+                         "payment method", "bought", "retail"};
+    };
   }
 
   private static String[] getContractKeywords(Language language) {
-    switch (language) {
-      case FINNISH:
-        return new String[]{"sopimus", "sopimusehto", "osapuoli", "allekirjoitus", 
-                           "sitoumus", "velvoite"};
-      case SWEDISH:
-        return new String[]{"kontrakt", "avtal", "part", "underskrift", "åtagande", 
-                           "skyldighet", "villkor"};
-      case ENGLISH:
-        return new String[]{"contract", "agreement", "party", "signature", "obligation", 
-                           "terms", "conditions"};
-      default:
-        return new String[]{};
-    }
+    return switch (language) {
+      case FINNISH -> new String[]{"sopimus", "sopimusehto", "osapuoli", "allekirjoitus", 
+                         "sitoumus", "velvoite"};
+      case SWEDISH -> new String[]{"kontrakt", "avtal", "part", "underskrift", "åtagande", 
+                         "skyldighet", "villkor"};
+      case ENGLISH -> new String[]{"contract", "agreement", "party", "signature", "obligation", 
+                         "terms", "conditions"};
+    };
   }
 
   private static String[] getCertificateKeywords(Language language) {
-    switch (language) {
-      case FINNISH:
-        return new String[]{"todistus", "sertifikaatti", "diplomi", "pätevyys", 
-                           "koulutus", "suoritus"};
-      case SWEDISH:
-        return new String[]{"certifikat", "intyg", "diplom", "kompetens", 
-                           "utbildning", "genomförande"};
-      case ENGLISH:
-        return new String[]{"certificate", "diploma", "qualification", "training", 
-                           "completion", "achievement"};
-      default:
-        return new String[]{};
-    }
+    return switch (language) {
+      case FINNISH -> new String[]{"todistus", "sertifikaatti", "diplomi", "pätevyys", 
+                         "koulutus", "suoritus"};
+      case SWEDISH -> new String[]{"certifikat", "intyg", "diplom", "kompetens", 
+                         "utbildning", "genomförande"};
+      case ENGLISH -> new String[]{"certificate", "diploma", "qualification", "training", 
+                         "completion", "achievement"};
+    };
   }
 
   private static String[] getReportKeywords(Language language) {
-    switch (language) {
-      case FINNISH:
-        return new String[]{"raportti", "selvitys", "analyysi", "tutkimus", 
-                           "yhteenveto", "tilasto"};
-      case SWEDISH:
-        return new String[]{"rapport", "utredning", "analys", "forskning", 
-                           "sammanfattning", "statistik"};
-      case ENGLISH:
-        return new String[]{"report", "analysis", "research", "summary", 
-                           "statistics", "findings"};
-      default:
-        return new String[]{};
-    }
+    return switch (language) {
+      case FINNISH -> new String[]{"raportti", "selvitys", "analyysi", "tutkimus", 
+                         "yhteenveto", "tilasto"};
+      case SWEDISH -> new String[]{"rapport", "utredning", "analys", "forskning", 
+                         "sammanfattning", "statistik"};
+      case ENGLISH -> new String[]{"report", "analysis", "research", "summary", 
+                         "statistics", "findings"};
+    };
   }
 
   private static String[] getFormKeywords(Language language) {
-    switch (language) {
-      case FINNISH:
-        return new String[]{"lomake", "hakemus", "ilmoitus", "rekisteröinti", 
-                           "täytä", "allekirjoita"};
-      case SWEDISH:
-        return new String[]{"blankett", "ansökan", "anmälan", "registrering", 
-                           "fyll", "underteckna"};
-      case ENGLISH:
-        return new String[]{"form", "application", "registration", "fill", 
-                           "sign", "submit"};
-      default:
-        return new String[]{};
-    }
+    return switch (language) {
+      case FINNISH -> new String[]{"lomake", "hakemus", "ilmoitus", "rekisteröinti", 
+                         "täytä", "allekirjoita"};
+      case SWEDISH -> new String[]{"blankett", "ansökan", "anmälan", "registrering", 
+                         "fyll", "underteckna"};
+      case ENGLISH -> new String[]{"form", "application", "registration", "fill", 
+                         "sign", "submit"};
+    };
   }
 
   private static String[] getLetterKeywords(Language language) {
-    switch (language) {
-      case FINNISH:
-        return new String[]{"kirje", "viesti", "tervehdys", "kunnioittaen", 
-                           "ystävällisin", "yhteistyöterveisin"};
-      case SWEDISH:
-        return new String[]{"brev", "meddelande", "hälsning", "med vänliga hälsningar", 
-                           "högaktningsfullt", "vänligen"};
-      case ENGLISH:
-        return new String[]{"letter", "message", "greeting", "sincerely", 
-                           "regards", "yours"};
-      default:
-        return new String[]{};
-    }
+    return switch (language) {
+      case FINNISH -> new String[]{"kirje", "viesti", "tervehdys", "kunnioittaen", 
+                         "ystävällisin", "yhteistyöterveisin"};
+      case SWEDISH -> new String[]{"brev", "meddelande", "hälsning", "med vänliga hälsningar", 
+                         "högaktningsfullt", "vänligen"};
+      case ENGLISH -> new String[]{"letter", "message", "greeting", "sincerely", 
+                         "regards", "yours"};
+    };
   }
 
   private static String[] getManualKeywords(Language language) {
-    switch (language) {
-      case FINNISH:
-        return new String[]{"käyttöohje", "ohje", "opas", "manual", "instructions", 
-                           "vaihe", "askel"};
-      case SWEDISH:
-        return new String[]{"manual", "instruktion", "guide", "anvisning", 
-                           "steg", "procedur"};
-      case ENGLISH:
-        return new String[]{"manual", "instructions", "guide", "procedure", 
-                           "step", "how to"};
-      default:
-        return new String[]{};
-    }
+    return switch (language) {
+      case FINNISH -> new String[]{"käyttöohje", "ohje", "opas", "manual", "instructions", 
+                         "vaihe", "askel"};
+      case SWEDISH -> new String[]{"manual", "instruktion", "guide", "anvisning", 
+                         "steg", "procedur"};
+      case ENGLISH -> new String[]{"manual", "instructions", "guide", "procedure", 
+                         "step", "how to"};
+    };
   }
 
   private static String[] getSpecificationKeywords(Language language) {
-    switch (language) {
-      case FINNISH:
-        return new String[]{"erittely", "listaus", "luettelo", "yksityiskohta", 
-                           "spesifikaatio", "määrittely"};
-      case SWEDISH:
-        return new String[]{"specifikation", "lista", "förteckning", "detalj", 
-                           "specificering", "uppräkning"};
-      case ENGLISH:
-        return new String[]{"specification", "listing", "details", "itemization", 
-                           "breakdown", "enumeration"};
-      default:
-        return new String[]{};
-    }
+    return switch (language) {
+      case FINNISH -> new String[]{"erittely", "listaus", "luettelo", "yksityiskohta", 
+                         "spesifikaatio", "määrittely"};
+      case SWEDISH -> new String[]{"specifikation", "lista", "förteckning", "detalj", 
+                         "specificering", "uppräkning"};
+      case ENGLISH -> new String[]{"specification", "listing", "details", "itemization", 
+                         "breakdown", "enumeration"};
+    };
   }
 
   private static boolean containsAny(String text, String... keywords) {
-    for (String keyword : keywords) {
-      if (text.contains(keyword)) {
-        return true;
-      }
-    }
-    return false;
+    return java.util.Arrays.stream(keywords)
+        .anyMatch(text::contains);
   }
 }
