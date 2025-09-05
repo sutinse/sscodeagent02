@@ -3,7 +3,6 @@ package fi.sutinse.pdfextractor.service;
 import fi.sutinse.pdfextractor.model.Language;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.text.Normalizer;
-import java.util.SequencedCollection;
 import java.util.List;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -15,8 +14,8 @@ public class TextNormalizationService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(TextNormalizationService.class);
 
-  // Common OCR errors in Nordic/European text using JDK 21 Sequenced Collections
-  private static final SequencedCollection<Pattern> COMMON_CORRECTIONS = List.of(
+  // Common OCR errors in Nordic/European text
+  private static final List<Pattern> COMMON_CORRECTIONS = List.of(
     // Common character substitutions
     Pattern.compile("([0-9])O([0-9])"), // 0 -> O confusion in numbers
     Pattern.compile("([a-zA-Z])0([a-zA-Z])"), // O -> 0 confusion in words
@@ -26,7 +25,7 @@ public class TextNormalizationService {
     Pattern.compile("vv") // w -> vv confusion
   );
 
-  private static final SequencedCollection<String> COMMON_REPLACEMENTS = List.of(
+  private static final List<String> COMMON_REPLACEMENTS = List.of(
     "$100$2", // Fix 0/O in numbers
     "$1O$2", // Fix O/0 in words
     "ll", // Fix l/1
@@ -35,27 +34,27 @@ public class TextNormalizationService {
     "w" // Fix vv/w
   );
 
-  // Finnish specific corrections using JDK 21 Sequenced Collections
-  private static final SequencedCollection<Pattern> FINNISH_CORRECTIONS = List.of(
+  // Finnish specific corrections
+  private static final List<Pattern> FINNISH_CORRECTIONS = List.of(
     Pattern.compile("ä"), // Ensure ä is properly encoded
     Pattern.compile("ö"), // Ensure ö is properly encoded
     Pattern.compile("å") // Ensure å is properly encoded
   );
 
-  private static final SequencedCollection<String> FINNISH_REPLACEMENTS = List.of(
+  private static final List<String> FINNISH_REPLACEMENTS = List.of(
     "ä", // Normalize ä
     "ö", // Normalize ö
     "å" // Normalize å
   );
 
-  // Swedish specific corrections using JDK 21 Sequenced Collections
-  private static final SequencedCollection<Pattern> SWEDISH_CORRECTIONS = List.of(
+  // Swedish specific corrections
+  private static final List<Pattern> SWEDISH_CORRECTIONS = List.of(
     Pattern.compile("ä"), // Ensure ä is properly encoded
     Pattern.compile("ö"), // Ensure ö is properly encoded
     Pattern.compile("å") // Ensure å is properly encoded
   );
 
-  private static final SequencedCollection<String> SWEDISH_REPLACEMENTS = List.of(
+  private static final List<String> SWEDISH_REPLACEMENTS = List.of(
     "ä", // Normalize ä
     "ö", // Normalize ö
     "å" // Normalize å
@@ -125,16 +124,12 @@ public class TextNormalizationService {
     return text.trim();
   }
 
-  /** Applies common corrections for OCR errors using JDK 21 Sequenced Collections */
+  /** Applies common corrections for OCR errors */
   private String applyCommonCorrections(String text) {
     String corrected = text;
-    
-    // Use JDK 21 Sequenced Collections features - get first/last elements efficiently
-    var corrections = COMMON_CORRECTIONS.stream().toList();
-    var replacements = COMMON_REPLACEMENTS.stream().toList();
 
-    for (int i = 0; i < corrections.size() && i < replacements.size(); i++) {
-      corrected = corrections.get(i).matcher(corrected).replaceAll(replacements.get(i));
+    for (int i = 0; i < COMMON_CORRECTIONS.size() && i < COMMON_REPLACEMENTS.size(); i++) {
+      corrected = COMMON_CORRECTIONS.get(i).matcher(corrected).replaceAll(COMMON_REPLACEMENTS.get(i));
     }
 
     return corrected;
@@ -149,16 +144,12 @@ public class TextNormalizationService {
     };
   }
 
-  /** Applies Finnish-specific corrections for common OCR errors using JDK 21 features */
+  /** Applies Finnish-specific corrections for common OCR errors */
   private String applyFinnishCorrections(String text) {
     String corrected = text;
-    
-    // Use JDK 21 Sequenced Collections for efficient iteration
-    var corrections = FINNISH_CORRECTIONS.stream().toList();
-    var replacements = FINNISH_REPLACEMENTS.stream().toList();
 
-    for (int i = 0; i < corrections.size() && i < replacements.size(); i++) {
-      corrected = corrections.get(i).matcher(corrected).replaceAll(replacements.get(i));
+    for (int i = 0; i < FINNISH_CORRECTIONS.size() && i < FINNISH_REPLACEMENTS.size(); i++) {
+      corrected = FINNISH_CORRECTIONS.get(i).matcher(corrected).replaceAll(FINNISH_REPLACEMENTS.get(i));
     }
 
     // Fix common Finnish word OCR errors
@@ -169,16 +160,12 @@ public class TextNormalizationService {
     return corrected;
   }
 
-  /** Applies Swedish-specific corrections for common OCR errors using JDK 21 features */
+  /** Applies Swedish-specific corrections for common OCR errors */
   private String applySwedishCorrections(String text) {
     String corrected = text;
-    
-    // Use JDK 21 Sequenced Collections for efficient iteration
-    var corrections = SWEDISH_CORRECTIONS.stream().toList();
-    var replacements = SWEDISH_REPLACEMENTS.stream().toList();
 
-    for (int i = 0; i < corrections.size() && i < replacements.size(); i++) {
-      corrected = corrections.get(i).matcher(corrected).replaceAll(replacements.get(i));
+    for (int i = 0; i < SWEDISH_CORRECTIONS.size() && i < SWEDISH_REPLACEMENTS.size(); i++) {
+      corrected = SWEDISH_CORRECTIONS.get(i).matcher(corrected).replaceAll(SWEDISH_REPLACEMENTS.get(i));
     }
 
     // Fix common Swedish word OCR errors
