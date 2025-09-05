@@ -22,7 +22,7 @@ The application automatically detects the document language by analyzing text co
 
 ## Requirements
 
-- Java 17+
+- Java 21+
 - Maven 3.6+
 - TesseractOCR with language packs (fin, swe, eng)
 
@@ -179,6 +179,20 @@ Modern Java records are used for clean, immutable data structures:
 - **JUnit 5**: Testing framework
 
 ## Development
+
+### Development Environment
+
+The repository includes a preconfigured development container for easy setup:
+
+- **.devcontainer/devcontainer.json**: VS Code Dev Container configuration with JDK 21
+- Includes all required dependencies (TesseractOCR, Ghostscript)
+- Automatic port forwarding for the application
+- Preconfigured VS Code extensions for Java development
+
+To use the development container:
+1. Open the repository in VS Code
+2. Install the "Dev Containers" extension
+3. When prompted, click "Reopen in Container" or use Command Palette > "Dev Containers: Reopen in Container"
 
 ### Project Structure
 

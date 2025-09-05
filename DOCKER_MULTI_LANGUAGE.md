@@ -253,7 +253,7 @@ For production use:
 
 ## Compatibility
 
-- Java 17+
+- Java 21+
 - Maven 3.6+
 - Docker 20.10+
 - TesseractOCR 5.3.4+
