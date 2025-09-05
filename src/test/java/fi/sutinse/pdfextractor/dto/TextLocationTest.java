@@ -9,7 +9,7 @@ class TextLocationTest {
   @Test
   void testTextLocation() {
     TextLocation location = TextLocation.of(10, 20, 100, 25, 1);
-    
+
     assertEquals(10, location.x());
     assertEquals(20, location.y());
     assertEquals(100, location.width());
@@ -20,7 +20,7 @@ class TextLocationTest {
   @Test
   void testTextLocationConstructor() {
     TextLocation location = new TextLocation(50, 60, 200, 30, 2);
-    
+
     assertEquals(50, location.x());
     assertEquals(60, location.y());
     assertEquals(200, location.width());

@@ -3,7 +3,7 @@ package fi.sutinse.pdfextractor.model;
 /** Enum for supported languages in the PDF text extractor */
 public enum Language {
   FINNISH("fin", "Finnish", "Suomi"),
-  SWEDISH("swe", "Swedish", "Svenska"), 
+  SWEDISH("swe", "Swedish", "Svenska"),
   ENGLISH("eng", "English", "English");
 
   private final String tesseractCode;
@@ -40,7 +40,7 @@ public enum Language {
     }
 
     String lowerText = text.toLowerCase();
-    
+
     // Count language-specific indicators
     int finnishScore = countFinnishIndicators(lowerText);
     int swedishScore = countSwedishIndicators(lowerText);
@@ -60,43 +60,90 @@ public enum Language {
     int score = 0;
     // Finnish-specific words and patterns
     String[] finnishWords = {
-      "ja", "on", "tai", "että", "kuten", "kanssa", "ilman", "mukaan", "sitten",
-      "lasku", "maksu", "eräpäivä", "yhteensä", "alv", "arvonlisävero", "kuitti",
-      "sopimus", "todistus", "raportti", "lomake", "kirje", "käyttöohje",
-      "erittely", "hinta", "summa", "päivämäärä", "nimi", "osoite"
+      "ja",
+      "on",
+      "tai",
+      "että",
+      "kuten",
+      "kanssa",
+      "ilman",
+      "mukaan",
+      "sitten",
+      "lasku",
+      "maksu",
+      "eräpäivä",
+      "yhteensä",
+      "alv",
+      "arvonlisävero",
+      "kuitti",
+      "sopimus",
+      "todistus",
+      "raportti",
+      "lomake",
+      "kirje",
+      "käyttöohje",
+      "erittely",
+      "hinta",
+      "summa",
+      "päivämäärä",
+      "nimi",
+      "osoite"
     };
-    
+
     for (String word : finnishWords) {
       score += countWordOccurrences(text, word);
     }
-    
+
     // Finnish character patterns
     score += text.length() - text.replace("ä", "").length();
     score += text.length() - text.replace("ö", "").length();
     score += (text.length() - text.replace("å", "").length()) / 2; // Less common in Finnish
-    
+
     return score;
   }
 
   private static int countSwedishIndicators(String text) {
     int score = 0;
-    // Swedish-specific words and patterns  
+    // Swedish-specific words and patterns
     String[] swedishWords = {
-      "och", "är", "att", "för", "med", "utan", "enligt", "sedan", "när",
-      "faktura", "betalning", "förfallodag", "totalt", "moms", "kvitto",
-      "kontrakt", "certifikat", "rapport", "blankett", "brev", "manual",
-      "specifikation", "pris", "summa", "datum", "namn", "adress"
+      "och",
+      "är",
+      "att",
+      "för",
+      "med",
+      "utan",
+      "enligt",
+      "sedan",
+      "när",
+      "faktura",
+      "betalning",
+      "förfallodag",
+      "totalt",
+      "moms",
+      "kvitto",
+      "kontrakt",
+      "certifikat",
+      "rapport",
+      "blankett",
+      "brev",
+      "manual",
+      "specifikation",
+      "pris",
+      "summa",
+      "datum",
+      "namn",
+      "adress"
     };
-    
+
     for (String word : swedishWords) {
       score += countWordOccurrences(text, word);
     }
-    
+
     // Swedish character patterns
     score += text.length() - text.replace("å", "").length();
     score += text.length() - text.replace("ä", "").length();
     score += text.length() - text.replace("ö", "").length();
-    
+
     return score;
   }
 
@@ -104,21 +151,45 @@ public enum Language {
     int score = 0;
     // English-specific words and patterns
     String[] englishWords = {
-      "and", "is", "the", "that", "with", "without", "according", "then", "when",
-      "invoice", "payment", "due", "total", "tax", "vat", "receipt",
-      "contract", "certificate", "report", "form", "letter", "manual",
-      "specification", "price", "amount", "date", "name", "address"
+      "and",
+      "is",
+      "the",
+      "that",
+      "with",
+      "without",
+      "according",
+      "then",
+      "when",
+      "invoice",
+      "payment",
+      "due",
+      "total",
+      "tax",
+      "vat",
+      "receipt",
+      "contract",
+      "certificate",
+      "report",
+      "form",
+      "letter",
+      "manual",
+      "specification",
+      "price",
+      "amount",
+      "date",
+      "name",
+      "address"
     };
-    
+
     for (String word : englishWords) {
       score += countWordOccurrences(text, word);
     }
-    
+
     // Bonus for common English patterns
     if (text.contains("the ")) score += 2;
     if (text.contains(" and ")) score += 2;
     if (text.contains(" of ")) score += 2;
-    
+
     return score;
   }
 
@@ -137,17 +208,17 @@ public enum Language {
     if (languageStr == null || languageStr.trim().isEmpty()) {
       return FINNISH;
     }
-    
+
     String normalized = languageStr.trim().toLowerCase();
-    
+
     for (Language lang : values()) {
-      if (lang.tesseractCode.equals(normalized) ||
-          lang.englishName.toLowerCase().equals(normalized) ||
-          lang.nativeName.toLowerCase().equals(normalized)) {
+      if (lang.tesseractCode.equals(normalized)
+          || lang.englishName.toLowerCase().equals(normalized)
+          || lang.nativeName.toLowerCase().equals(normalized)) {
         return lang;
       }
     }
-    
+
     return FINNISH; // Default fallback
   }
 }

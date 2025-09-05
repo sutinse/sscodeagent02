@@ -46,7 +46,7 @@ public class PdfExtractionService {
         // Check if PDFBox extracted meaningful text
         if (isTextMeaningful(extractedText)) {
           long processingTime = System.currentTimeMillis() - startTime;
-          
+
           // Detect language and document type
           Language detectedLanguage = Language.detectFromContent(extractedText);
           DocumentType docType = DocumentType.detectFromContent(extractedText, detectedLanguage);
@@ -61,11 +61,16 @@ public class PdfExtractionService {
                   detectedLanguage.getTesseractCode());
 
           LOGGER.info(
-              "PDFBox extraction successful for file: {}, detected type: {}, language: {}", 
-              filename, docType, detectedLanguage.getEnglishName());
+              "PDFBox extraction successful for file: {}, detected type: {}, language: {}",
+              filename,
+              docType,
+              detectedLanguage.getEnglishName());
 
           return PdfExtractionResponse.success(
-              StructuredText.fromText(extractedText.trim()), ExtractionMethod.PDFBOX, docType, metadata);
+              StructuredText.fromText(extractedText.trim()),
+              ExtractionMethod.PDFBOX,
+              docType,
+              metadata);
         }
       }
 
@@ -84,15 +89,18 @@ public class PdfExtractionService {
       // Extract structured text with OCR and location data
       StructuredText structuredText = tesseractService.extractStructuredTextFromPdf(pdfData);
 
-      if (structuredText == null || structuredText.content() == null || structuredText.content().trim().isEmpty()) {
+      if (structuredText == null
+          || structuredText.content() == null
+          || structuredText.content().trim().isEmpty()) {
         return PdfExtractionResponse.failure("No text could be extracted using OCR");
       }
 
       // Detect language from OCR text
       Language detectedLanguage = Language.detectFromContent(structuredText.content());
-      
+
       // Normalize text using detected language
-      String normalizedText = normalizationService.normalizeText(structuredText.content(), detectedLanguage);
+      String normalizedText =
+          normalizationService.normalizeText(structuredText.content(), detectedLanguage);
       DocumentType docType = DocumentType.detectFromContent(normalizedText, detectedLanguage);
 
       long processingTime = System.currentTimeMillis() - startTime;
@@ -107,15 +115,22 @@ public class PdfExtractionService {
 
       ExtractionMetadata metadata =
           ExtractionMetadata.create(
-              filename, pdfData.length, pageCount, processingTime, true, 
+              filename,
+              pdfData.length,
+              pageCount,
+              processingTime,
+              true,
               detectedLanguage.getTesseractCode());
 
       LOGGER.info(
-          "TesseractOCR extraction successful for file: {}, detected type: {}, language: {}", 
-          filename, docType, detectedLanguage.getEnglishName());
+          "TesseractOCR extraction successful for file: {}, detected type: {}, language: {}",
+          filename,
+          docType,
+          detectedLanguage.getEnglishName());
 
       // Update the structured text content with normalized text
-      StructuredText finalStructuredText = StructuredText.fromElements(normalizedText, structuredText.elements());
+      StructuredText finalStructuredText =
+          StructuredText.fromElements(normalizedText, structuredText.elements());
 
       return PdfExtractionResponse.success(
           finalStructuredText, ExtractionMethod.TESSERACT_OCR, docType, metadata);

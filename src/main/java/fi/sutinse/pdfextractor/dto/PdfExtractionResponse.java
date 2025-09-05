@@ -13,7 +13,10 @@ public record PdfExtractionResponse(
 
   /** Factory method for successful extraction */
   public static PdfExtractionResponse success(
-      StructuredText text, ExtractionMethod method, DocumentType docType, ExtractionMetadata metadata) {
+      StructuredText text,
+      ExtractionMethod method,
+      DocumentType docType,
+      ExtractionMetadata metadata) {
     return new PdfExtractionResponse(text, method, docType, true, null, metadata);
   }
 

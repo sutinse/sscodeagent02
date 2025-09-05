@@ -3,7 +3,6 @@ package fi.sutinse.pdfextractor.resource;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.Matchers.hasKey;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
@@ -28,13 +27,13 @@ public class PdfExtractionResourceTest {
         .when()
         .post("/api/pdf/extract")
         .then()
-        .statusCode(415);  // Unsupported Media Type, no JSON body expected
+        .statusCode(415); // Unsupported Media Type, no JSON body expected
   }
 
   @Test
   public void testInvalidFileType() {
     byte[] invalidContent = "Not a PDF".getBytes();
-    
+
     given()
         .multiPart("file", "test.txt", invalidContent, "text/plain")
         .when()
@@ -44,17 +43,17 @@ public class PdfExtractionResourceTest {
         .body("success", is(false))
         .body("errorMessage", notNullValue());
   }
-  
+
   @Test
   public void testInvalidPdfContent() {
     byte[] invalidPdfContent = "Invalid PDF content".getBytes();
-    
+
     given()
         .multiPart("file", "invalid.pdf", invalidPdfContent, "application/pdf")
         .when()
         .post("/api/pdf/extract")
         .then()
-        .statusCode(500)  // Internal Server Error for invalid PDF format
+        .statusCode(500) // Internal Server Error for invalid PDF format
         .body("success", is(false))
         .body("errorMessage", notNullValue());
   }
